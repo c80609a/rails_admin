@@ -86,7 +86,7 @@ module RailsAdmin
 
         label = navigation_label || t('admin.misc.navigation')
 
-        %(<li class='dropdown-header'>#{label}</li>#{li_stack}) if li_stack.present?
+        collapsible_stack(label, li_stack)
       end.join.html_safe
     end
 
@@ -101,7 +101,7 @@ module RailsAdmin
         end.join.html_safe
         label ||= t('admin.misc.root_navigation')
 
-        %(<li class='dropdown-header'>#{label}</li>#{li_stack}) if li_stack.present?
+        collapsible_stack(label, li_stack)
       end.join.html_safe
     end
 
@@ -111,8 +111,7 @@ module RailsAdmin
       end.join
 
       label = RailsAdmin::Config.navigation_static_label || t('admin.misc.navigation_static_label')
-      li_stack = %(<li class='dropdown-header'>#{label}</li>#{li_stack}).html_safe if li_stack.present?
-      li_stack
+      collapsible_stack(label, li_stack) || ''
     end
 
     def navigation(parent_groups, nodes, level = 0)
@@ -231,6 +230,22 @@ module RailsAdmin
 
     def gravatar_url(email)
       "https://secure.gravatar.com/avatar/#{Digest::MD5.hexdigest email}?s=30"
+    end
+
+    def collapsible_stack(label, li_stack)
+      return nil unless li_stack.present?
+
+      collapse_classname = "#{label.underscore.tr('/', '-')}_menu"
+      content_tag(:li, class: 'mb-1') do
+        content_tag(:button, 'aria-expanded': true, class: 'btn btn-toggle align-items-center rounded', data: {bs_toggle: "collapse", bs_target: ".sidebar .#{collapse_classname}"}) do
+          content_tag(:i, '', class: 'fas fa-chevron-down') + html_escape(' ' + label)
+        end +
+          content_tag(:div, class: "collapse show #{collapse_classname}") do
+            content_tag(:ul, class: 'btn-toggle-nav list-unstyled fw-normal pb-1') do
+              li_stack
+            end
+          end
+      end
     end
   end
 end
